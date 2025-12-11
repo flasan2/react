@@ -1,19 +1,31 @@
 import { useEffect, useState } from 'react';
-
+import {
+  Box,
+  Button,
+  IconButton,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  Typography,
+} from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 function Get() {
   const [clientes, setClientes] = useState([]);
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState('');
 
-  // estados para edição
   const [editandoId, setEditandoId] = useState(null);
   const [editNome, setEditNome] = useState('');
   const [editCpf, setEditCpf] = useState('');
   const [editTelefone, setEditTelefone] = useState('');
   const [editEmail, setEditEmail] = useState('');
-
-  // ---------- CARREGAR CLIENTES ----------
 
   const carregarClientes = async () => {
     setCarregando(true);
@@ -40,7 +52,6 @@ function Get() {
     carregarClientes();
   }, []);
 
-  // ---------- EXCLUIR ----------
   const excluirCliente = async (id) => {
     const confirmar = window.confirm('Tem certeza que deseja excluir este cliente?');
     if (!confirmar) return;
@@ -54,7 +65,6 @@ function Get() {
         throw new Error('Erro ao excluir cliente');
       }
 
-      // remove da lista no front
       setClientes((listaAtual) => listaAtual.filter((c) => c.id !== id));
     } catch (err) {
       console.error(err);
@@ -62,12 +72,11 @@ function Get() {
     }
   };
 
-  // ---------- EDITAR ----------
   const iniciarEdicao = (cliente) => {
     setEditandoId(cliente.id);
     setEditNome(cliente.nome);
     setEditCpf(cliente.cpf);
-    setEditTelefone(cliente.telefone);
+    setEditTelefone(cliente.telefone || '');
     setEditEmail(cliente.email || '');
   };
 
@@ -101,7 +110,6 @@ function Get() {
 
       const atualizado = await resposta.json();
 
-      // Atualiza na lista local
       setClientes((listaAtual) =>
         listaAtual.map((c) => (c.id === atualizado.id ? atualizado : c))
       );
@@ -114,129 +122,151 @@ function Get() {
   };
 
   return (
-    <div>
-      <h2>Lista de Clientes</h2>
-
-      <button onClick={carregarClientes} disabled={carregando}>
-        {carregando ? 'Atualizando...' : 'Recarregar lista'}
-      </button>
-
-      {erro && <p style={{ color: 'red', marginTop: '10px' }}>Erro: {erro}</p>}
-
-      <table
-        style={{
-          width: '100%',
-          borderCollapse: 'collapse',
-          marginTop: '20px',
-        }}
+    <Box>
+      <Box
+        display="flex"
+        alignItems="center"
+        justifyContent="space-between"
+        mb={2}
       >
-        <thead>
-          <tr>
-            <th style={{ border: '1px solid #ccc', padding: '8px' }}>ID</th>
-            <th style={{ border: '1px solid #ccc', padding: '8px' }}>Nome</th>
-            <th style={{ border: '1px solid #ccc', padding: '8px' }}>CPF</th>
-            <th style={{ border: '1px solid #ccc', padding: '8px' }}>Telefone</th>
-            <th style={{ border: '1px solid #ccc', padding: '8px' }}>E-mail</th>
-            <th style={{ border: '1px solid #ccc', padding: '8px' }}>Ações</th>
+        <Typography variant="h6">Lista de Clientes</Typography>
+        <Button
+          variant="outlined"
+          onClick={carregarClientes}
+          disabled={carregando}
+        >
+          {carregando ? 'Atualizando...' : 'Recarregar lista'}
+        </Button>
+      </Box>
 
-          </tr>
-        </thead>
-        <tbody>
-          {clientes.length === 0 && !carregando && (
-            <tr>
-              <td colSpan="6" style={{ textAlign: 'center', padding: '10px' }}>
-                Nenhum cliente cadastrado.
-              </td>
-            </tr>
-          )}
+      {erro && (
+        <Typography color="error" sx={{ mb: 2 }}>
+          Erro: {erro}
+        </Typography>
+      )}
 
-          {clientes.map((cliente) => {
-            const estaEditando = editandoId === cliente.id;
+      <TableContainer component={Paper}>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>ID</TableCell>
+              <TableCell>Nome</TableCell>
+              <TableCell>CPF</TableCell>
+              <TableCell>Telefone</TableCell>
+              <TableCell>E-mail</TableCell>
+              <TableCell align="right">Ações</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {clientes.length === 0 && !carregando && (
+              <TableRow>
+                <TableCell colSpan={6} align="center">
+                  Nenhum cliente cadastrado.
+                </TableCell>
+              </TableRow>
+            )}
 
-            return (
-              <tr key={cliente.id}>
-                <td style={{ border: '1px solid #ccc', padding: '8px' }}>{cliente.id}</td>
+            {clientes.map((cliente) => {
+              const estaEditando = editandoId === cliente.id;
 
-                {/* COLUNA NOME */}
-                <td style={{ border: '1px solid #ccc', padding: '8px' }}>
-                  {estaEditando ? (
-                    <input
-                      type="text"
-                      value={editNome}
-                      onChange={(e) => setEditNome(e.target.value)}
-                    />
-                  ) : (
-                    cliente.nome
-                  )}
-                </td>
+              return (
+                <TableRow key={cliente.id}>
+                  <TableCell>{cliente.id}</TableCell>
 
-                {/* COLUNA CPF */}
-                <td style={{ border: '1px solid #ccc', padding: '8px' }}>
-                  {estaEditando ? (
-                    <input
-                      type="text"
-                      value={editCpf}
-                      maxLength={11}
-                      onChange={(e) => setEditCpf(e.target.value)}
-                    />
-                  ) : (
-                    cliente.cpf
-                  )}
-                </td>
+                  <TableCell>
+                    {estaEditando ? (
+                      <TextField
+                        size="small"
+                        value={editNome}
+                        onChange={(e) => setEditNome(e.target.value)}
+                      />
+                    ) : (
+                      cliente.nome
+                    )}
+                  </TableCell>
 
-                {/* COLUNA TELEFONE */}
-                <td style={{ border: '1px solid #ccc', padding: '8px' }}>
-                  {estaEditando ? (
-                    <input
-                      type="text"
-                      value={editTelefone}
-                      onChange={(e) => setEditTelefone(e.target.value)}
-                    />
-                  ) : (
-                    cliente.telefone
-                  )}
-                </td>
+                  <TableCell>
+                    {estaEditando ? (
+                      <TextField
+                        size="small"
+                        value={editCpf}
+                        inputProps={{ maxLength: 11 }}
+                        onChange={(e) => setEditCpf(e.target.value)}
+                      />
+                    ) : (
+                      cliente.cpf
+                    )}
+                  </TableCell>
 
-                {/* COLUNA EMAIL */}
-                <td style={{ border: '1px solid #ccc', padding: '8px' }}>
-                  {estaEditando ? (
-                    <input
-                      type="text"
-                      value={editEmail}
-                      onChange={(e) => setEditEmail(e.target.value)}
-                    />
-                  ) : (
-                    cliente.email
-                  )}
-                </td>
+                  <TableCell>
+                    {estaEditando ? (
+                      <TextField
+                        size="small"
+                        value={editTelefone}
+                        onChange={(e) => setEditTelefone(e.target.value)}
+                      />
+                    ) : (
+                      cliente.telefone
+                    )}
+                  </TableCell>
 
-                {/* COLUNA EMAIL */}
-                <td style={{ border: '1px solid #ccc', padding: '8px' }}>
-                  {estaEditando ? (
-                    <>
-                      <button onClick={salvarEdicao} style={{ marginRight: '8px' }}>
-                        Salvar
-                      </button>
-                      <button onClick={cancelarEdicao}>Cancelar</button>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        onClick={() => iniciarEdicao(cliente)}
-                        style={{ marginRight: '8px' }}
-                      >
-                        Editar
-                      </button>
-                      <button onClick={() => excluirCliente(cliente.id)}>Excluir</button>
-                    </>
-                  )}
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
+                  <TableCell>
+                    {estaEditando ? (
+                      <TextField
+                        size="small"
+                        value={editEmail}
+                        onChange={(e) => setEditEmail(e.target.value)}
+                      />
+                    ) : (
+                      cliente.email
+                    )}
+                  </TableCell>
+
+                  <TableCell align="right">
+                    {estaEditando ? (
+                      <>
+                        <Button
+                          size="small"
+                          variant="contained"
+                          sx={{ mr: 1 }}
+                          onClick={salvarEdicao}
+                        >
+                          Salvar
+                        </Button>
+                        <Button
+                          size="small"
+                          variant="text"
+                          onClick={cancelarEdicao}
+                        >
+                          Cancelar
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <IconButton
+                          size="small"
+                          sx={{ mr: 1 }}
+                          onClick={() => iniciarEdicao(cliente)}
+                        >
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => excluirCliente(cliente.id)}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </>
+                    )}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Box>
   );
 }
 

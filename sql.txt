@@ -1,9 +1,11 @@
 CRIAR NOVA COLUNA
+
 ALTER TABLE clientes
 ADD COLUMN email VARCHAR(100);
 
 //////////////////////////////////////////////////////////////////////////////////////
 EDITAR DADOS DE UM CADASTRO
+
 UPDATE clientes
 SET email = 'cliente1@teste.com'
 WHERE id = 1;
